@@ -23,7 +23,7 @@ config = Namespace(
     test_bs=128,
     lr_init=0.001,
     max_epoch=500,
-    run_times=5,
+    run_times=10,
     patience=20
 )
 loss_num = 7
