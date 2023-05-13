@@ -208,7 +208,7 @@ def get_Cifar10(train_bs=128, test_bs=128):
 
 
 def get_Cifar100(train_bs=128, test_bs=128):
-    base_dir = "/Users/xulongwang/PycharmProjects"
+    base_dir = "/home/acq21xw"
     train_dir = os.path.join(base_dir, "Data", "SplitCifar100_2class", "train")
     test_dir = os.path.join(base_dir, "Data", "SplitCifar100_2class", "test")
     train_stream = []
