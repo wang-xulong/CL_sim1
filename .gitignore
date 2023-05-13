@@ -13,7 +13,7 @@ __pycache__/
 wandb*
 *download_data.py
 *generate_txt.py
-
+run
 
 *.txt
 
