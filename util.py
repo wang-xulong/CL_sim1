@@ -8,10 +8,12 @@ import torchvision.transforms as transforms
 import copy
 from CLDataset import MyDataset
 import wandb
+
 experience = 5
 
 
-def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, device, patience, run_time, task_id, func_sim=False):
+def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, device, patience, run_time, task_id,
+            func_sim=False):
     # 要记录训练的epoch
     record_epoch = 0
     # to track the training loss as the model trains
@@ -50,7 +52,7 @@ def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, devic
             train_accs.append(accuracy(y_pred, y_train).item())
 
         if func_sim is True and e == record_epoch:
-            new_task_loss = copy.deepcopy(train_losses[0:7]) # 1000个样本，batch_size 是 128，最多7次!
+            new_task_loss = copy.deepcopy(train_losses[0:7])  # 1000个样本，batch_size 是 128，最多7次!
 
         # validation
         model.eval()
@@ -63,7 +65,7 @@ def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, devic
                 # record valid loss
                 valid_losses.append(test_loss.item())
                 valid_accs.append(accuracy(y_pred, y_test).item())
-                wandb.log({"run:" + str(run_time) + " id:" + str(task_id), accuracy(y_pred, y_test).item()} )
+                wandb.log({"run:" + str(run_time) + " id:" + str(task_id): accuracy(y_pred, y_test).item()})
 
             # calculate average loss over an epoch
             train_loss = np.average(train_losses)
@@ -200,8 +202,10 @@ def get_Cifar10(train_bs=128, test_bs=128):
         train_data = MyDataset(txt_path=train_txt_path, transform=trainTransform)
         test_data = MyDataset(txt_path=test_txt_path, transform=testTransform)
         # 构建CLDataLoader
-        train_loader = DataLoader(dataset=train_data, batch_size=train_bs, shuffle=True, num_workers=2, pin_memory=True, prefetch_factor=train_bs*2)
-        test_loader = DataLoader(dataset=test_data, batch_size=test_bs, num_workers=2, pin_memory=True, prefetch_factor=test_bs*2)
+        train_loader = DataLoader(dataset=train_data, batch_size=train_bs, shuffle=True, num_workers=2, pin_memory=True,
+                                  prefetch_factor=train_bs * 2)
+        test_loader = DataLoader(dataset=test_data, batch_size=test_bs, num_workers=2, pin_memory=True,
+                                 prefetch_factor=test_bs * 2)
         # 添加到stream list中
         train_stream.append(train_loader)
         test_stream.append(test_loader)
@@ -233,8 +237,10 @@ def get_Cifar100(train_bs=128, test_bs=128):
         train_data = MyDataset(txt_path=train_txt_path, transform=trainTransform)
         test_data = MyDataset(txt_path=test_txt_path, transform=testTransform)
         # 构建CLDataLoader
-        train_loader = DataLoader(dataset=train_data, batch_size=train_bs, shuffle=True, num_workers=2, pin_memory=True, prefetch_factor=train_bs*2)
-        test_loader = DataLoader(dataset=test_data, batch_size=test_bs, num_workers=2, pin_memory=True, prefetch_factor=test_bs*2)
+        train_loader = DataLoader(dataset=train_data, batch_size=train_bs, shuffle=True, num_workers=2, pin_memory=True,
+                                  prefetch_factor=train_bs * 2)
+        test_loader = DataLoader(dataset=test_data, batch_size=test_bs, num_workers=2, pin_memory=True,
+                                 prefetch_factor=test_bs * 2)
         # 添加到stream list中
         train_stream.append(train_loader)
         test_stream.append(test_loader)
