@@ -1,5 +1,5 @@
 """
-calculate the functional similarity and acc, fgt for CIFAR100 2 class
+calculate the functional similarity(different situation) and acc, fgt for CIFAR100 2 class
 """
 import torch
 import os
@@ -40,10 +40,10 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 now_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 for run in range(config.run_times):
-    wandb.init(project=config.project_name, config=config.__dict__, name=now_time+"run:"+str(run+1), save_code=True)
+    wandb.init(project=config.project_name, config=config.__dict__, name=now_time + "run:" + str(run + 1),
+               save_code=True)
     print("run time: {}".format(run + 1))
 
-    wandb.log({"run_time": run})
     # ------------------------------------ step 1/5 : load data------------------------------------
     train_stream, test_stream = get_Cifar100()
     # ------------------------------------ step 2/5 : define network-------------------------------
@@ -60,7 +60,7 @@ for run in range(config.run_times):
     model, avg_train_losses, _, _, _, _ = trainES(basic_task_data, basic_task_test_data, model,
                                                   criterion, optimizer,
                                                   config.max_epoch, device, patience=config.patience,
-                                                  run_time=run+1, task_id=0,func_sim=False)
+                                                  task_id=0, func_sim=False)
     # 记录本次每个任务的fun_score
     fun_score = np.zeros((4, (loss_num + 1)))  # 4个任务，7个task loss 和一个 basic loss
     # 记录basic loss  4个任务
@@ -70,14 +70,14 @@ for run in range(config.run_times):
     # setting stage 1 matrix
     acc_array1 = np.zeros((4, 2))
     # testing basic task
-    _, acc_array1[:, 0] = test(test_stream[config.basic_task], model, criterion, device)
+    _, acc_array1[:, 0] = test(test_stream[config.basic_task], model, criterion, device, task_id=0)
     # pop the src data from train_stream and test_stream
     train_stream.pop(config.basic_task)
     test_stream.pop(config.basic_task)
     # test other tasks except basic task
     for i, probe_data in enumerate(test_stream):
         with torch.no_grad():
-            _, acc_array1[i, 1] = test(probe_data, model, criterion, device)
+            _, acc_array1[i, 1] = test(probe_data, model, criterion, device, task_id= i+1)
     # save task 1
     PATH = "./"
     trained_model_path = os.path.join(PATH, 'basic_model.pth')
@@ -97,7 +97,7 @@ for run in range(config.run_times):
         trained_model, _, _, _, _, new_task_loss = trainES(train_data, test_data, trained_model, criterion,
                                                            optimizer, config.max_epoch,
                                                            device, config.patience,
-                                                           run_time=run+1, task_id=j+1, func_sim=True)
+                                                           run_time=run + 1, task_id=j + 1, func_sim=True)
         # record func_sim of current new task
         for index in range(1, 1 + loss_num):
             fun_score[j, index] = new_task_loss[index - 1]
@@ -106,8 +106,8 @@ for run in range(config.run_times):
 
         # test model on basic task and task j
         with torch.no_grad():
-            _, acc_array2[j, 0] = test(basic_task_test_data, trained_model, criterion, device)
-            _, acc_array2[j, 1] = test(test_stream[j], trained_model, criterion, device)
+            _, acc_array2[j, 0] = test(basic_task_test_data, trained_model, criterion, device, task_id=0)
+            _, acc_array2[j, 1] = test(test_stream[j], trained_model, criterion, device, task_id=j+1)
         # computing avg_acc and CF
     accuracy_list1.append([acc_array1[0, :], acc_array2[0, :]])
     accuracy_list2.append([acc_array1[1, :], acc_array2[1, :]])

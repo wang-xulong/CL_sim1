@@ -12,7 +12,7 @@ import wandb
 experience = 5
 
 
-def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, device, patience, run_time, task_id,
+def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, device, patience, task_id,
             func_sim=False):
     # 要记录训练的epoch
     record_epoch = 0
@@ -65,7 +65,7 @@ def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, devic
                 # record valid loss
                 valid_losses.append(test_loss.item())
                 valid_accs.append(accuracy(y_pred, y_test).item())
-                wandb.log({"run:" + str(run_time) + " id:" + str(task_id): accuracy(y_pred, y_test).item()})
+                wandb.log({"id:" + str(task_id): accuracy(y_pred, y_test).item()})
 
             # calculate average loss over an epoch
             train_loss = np.average(train_losses)
@@ -160,7 +160,7 @@ def train(train_data, test_data, model, criterion, optimizer, max_epoch, device,
     return model, avg_train_losses, avg_train_accs, avg_valid_losses, avg_valid_accs, new_task_first_loss
 
 
-def test(test_data, model, criterion, device):
+def test(test_data, model, criterion, device, task_id):
     model.eval()
     test_data_loss = 0
     test_data_acc = 0
@@ -170,7 +170,9 @@ def test(test_data, model, criterion, device):
         test_pred = model(x_test)
         loss = criterion(test_pred, y_test)
         test_data_loss += loss * test_data.batch_size
-        test_data_acc += accuracy(test_pred, y_test)
+        current_acc = accuracy(test_pred, y_test)
+        wandb.log({"Test stage id:" + str(task_id): current_acc})
+        test_data_acc += current_acc
 
     test_loss = test_data_loss / len(test_data.dataset)
     acc = test_data_acc / (t_j + 1)
