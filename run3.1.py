@@ -60,7 +60,7 @@ for run in range(config.run_times):
     model, avg_train_losses, _, _, _, _ = trainES(basic_task_data, basic_task_test_data, model,
                                                   criterion, optimizer,
                                                   config.max_epoch, device, patience=config.patience,
-                                                  func_sim=False, run_time=run+1, task_id=0)
+                                                  run_time=run+1, task_id=0,func_sim=False)
     # 记录本次每个任务的fun_score
     fun_score = np.zeros((4, (loss_num + 1)))  # 4个任务，7个task loss 和一个 basic loss
     # 记录basic loss  4个任务
@@ -96,8 +96,8 @@ for run in range(config.run_times):
         # training other tasks
         trained_model, _, _, _, _, new_task_loss = trainES(train_data, test_data, trained_model, criterion,
                                                            optimizer, config.max_epoch,
-                                                           device, config.patience, func_sim=True,
-                                                           run_time=run+1, task_id=j+1)
+                                                           device, config.patience,
+                                                           run_time=run+1, task_id=j+1, func_sim=True)
         # record func_sim of current new task
         for index in range(1, 1 + loss_num):
             fun_score[j, index] = new_task_loss[index - 1]
