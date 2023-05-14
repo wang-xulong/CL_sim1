@@ -97,7 +97,7 @@ for run in range(config.run_times):
         trained_model, _, _, _, _, new_task_loss = trainES(train_data, test_data, trained_model, criterion,
                                                            optimizer, config.max_epoch,
                                                            device, config.patience,
-                                                           run_time=run + 1, task_id=j + 1, func_sim=True)
+                                                           task_id=j + 1, func_sim=True)
         # record func_sim of current new task
         for index in range(1, 1 + loss_num):
             fun_score[j, index] = new_task_loss[index - 1]

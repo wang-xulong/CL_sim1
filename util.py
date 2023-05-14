@@ -65,7 +65,7 @@ def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, devic
                 # record valid loss
                 valid_losses.append(test_loss.item())
                 valid_accs.append(accuracy(y_pred, y_test).item())
-                wandb.log({"id:" + str(task_id): accuracy(y_pred, y_test).item()})
+                wandb.log({"Train id:" + str(task_id): accuracy(y_pred, y_test).item()})
 
             # calculate average loss over an epoch
             train_loss = np.average(train_losses)
@@ -171,7 +171,7 @@ def test(test_data, model, criterion, device, task_id):
         loss = criterion(test_pred, y_test)
         test_data_loss += loss * test_data.batch_size
         current_acc = accuracy(test_pred, y_test)
-        wandb.log({"Test stage id:" + str(task_id): current_acc})
+        wandb.log({"Test id:" + str(task_id): current_acc})
         test_data_acc += current_acc
 
     test_loss = test_data_loss / len(test_data.dataset)
