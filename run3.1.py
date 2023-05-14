@@ -38,10 +38,9 @@ use_cuda = not no_cuda and torch.cuda.is_available()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # kwargs = {"num_workers": 4, "pin_memory": True} if use_cuda else {}
 
-
+now_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 for run in range(config.run_times):
-    now_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    wandb.init(project=config.project_name, config=config.__dict__, name=now_time, save_code=True)
+    wandb.init(project=config.project_name, config=config.__dict__, name=now_time+"run:"+str(run+1), save_code=True)
     print("run time: {}".format(run + 1))
 
     wandb.log({"run_time": run})
@@ -61,7 +60,7 @@ for run in range(config.run_times):
     model, avg_train_losses, _, _, _, _ = trainES(basic_task_data, basic_task_test_data, model,
                                                   criterion, optimizer,
                                                   config.max_epoch, device, patience=config.patience,
-                                                  func_sim=False)
+                                                  func_sim=False, run_time=run+1, task_id=0)
     # 记录本次每个任务的fun_score
     fun_score = np.zeros((4, (loss_num + 1)))  # 4个任务，7个task loss 和一个 basic loss
     # 记录basic loss  4个任务
@@ -97,7 +96,8 @@ for run in range(config.run_times):
         # training other tasks
         trained_model, _, _, _, _, new_task_loss = trainES(train_data, test_data, trained_model, criterion,
                                                            optimizer, config.max_epoch,
-                                                           device, config.patience, func_sim=True)
+                                                           device, config.patience, func_sim=True,
+                                                           run_time=run+1, task_id=j+1)
         # record func_sim of current new task
         for index in range(1, 1 + loss_num):
             fun_score[j, index] = new_task_loss[index - 1]
@@ -108,16 +108,13 @@ for run in range(config.run_times):
         with torch.no_grad():
             _, acc_array2[j, 0] = test(basic_task_test_data, trained_model, criterion, device)
             _, acc_array2[j, 1] = test(test_stream[j], trained_model, criterion, device)
-            wandb.log({"basic task's acc when train new task " + str(j + 1): acc_array2[j, 0]})
-            wandb.log({"new task " + str(j + 1) + "'s acc when train new task": acc_array2[j, 1]})
         # computing avg_acc and CF
     accuracy_list1.append([acc_array1[0, :], acc_array2[0, :]])
     accuracy_list2.append([acc_array1[1, :], acc_array2[1, :]])
     accuracy_list3.append([acc_array1[2, :], acc_array2[2, :]])
     accuracy_list4.append([acc_array1[3, :], acc_array2[3, :]])
     fun_score_list.append(fun_score)
-
-wandb.finish()
+    wandb.finish()
 accuracy_array1 = np.array(accuracy_list1)
 accuracy_array2 = np.array(accuracy_list2)
 accuracy_array3 = np.array(accuracy_list3)

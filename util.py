@@ -11,7 +11,7 @@ import wandb
 experience = 5
 
 
-def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, device, patience, func_sim=False):
+def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, device, patience, func_sim=False, run_time, task_id):
     # 要记录训练的epoch
     record_epoch = 0
     # to track the training loss as the model trains
@@ -63,6 +63,7 @@ def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, devic
                 # record valid loss
                 valid_losses.append(test_loss.item())
                 valid_accs.append(accuracy(y_pred, y_test).item())
+                wandb.log({"run:" + str(run_time) + " id:" + str(task_id), accuracy(y_pred, y_test).item()} )
 
             # calculate average loss over an epoch
             train_loss = np.average(train_losses)
