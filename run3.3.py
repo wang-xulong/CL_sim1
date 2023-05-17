@@ -24,9 +24,10 @@ config = Namespace(
     lr_init=0.001,
     max_epoch=2000,
     run_times=20,
-    patience=50
+    patience=50,
+    class_num=2
 )
-notes = "修改更小的test_bs,并记录了每次实验的acc和fgt（新增了single_run_avg_end_acc函数），wandb.log改成了按照epoch来记录, 第二个阶段执行新任务学习的时候，打印是从1开始计数,数据集是 2class_v2"
+notes = "使用了粗标签，数据集是 Cifar100_2class_v3，修改了测试模型只log记录2次的bug"
 loss_num = 7
 accuracy_list1 = []  # multiple run
 accuracy_list2 = []
@@ -46,7 +47,7 @@ for run in range(config.run_times):
     print("run time: {}".format(run + 1))
 
     # ------------------------------------ step 1/5 : load data------------------------------------
-    train_stream, test_stream = get_Cifar100()
+    train_stream, test_stream = get_Cifar100(train_bs=config.train_bs, test_bs=config.test_bs)
     # ------------------------------------ step 2/5 : define network-------------------------------
     model = resnet50()
     model.fc = nn.Linear(model.fc.in_features, config.class_num)
@@ -90,7 +91,7 @@ for run in range(config.run_times):
         print("task {} starting...".format(j+1))
         # load old task's model
         trained_model = resnet50()
-        trained_model.fc = nn.Linear(trained_model.fc.in_features, 2)  # final output dim = 2
+        trained_model.fc = nn.Linear(trained_model.fc.in_features, config.class_num)  # final output dim = 2
         trained_model.load_state_dict(torch.load(trained_model_path))
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(trained_model.parameters(), lr=config.lr_init, momentum=0.9, dampening=0.1)
