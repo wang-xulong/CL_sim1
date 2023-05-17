@@ -220,7 +220,7 @@ def get_Cifar10(train_bs=128, test_bs=64):
 def get_Cifar100(train_bs=128, test_bs=64):
     base_dir = "/home/acq21xw"
     train_dir = os.path.join(base_dir, "Data", "SplitCifar100_2class_v3", "train")
-    test_dir = os.path.join(base_dir, "Data", "SplitCifar100_5class_v3", "test")
+    test_dir = os.path.join(base_dir, "Data", "SplitCifar100_2class_v3", "test")
     train_stream = []
     test_stream = []
     # MNIST 数据集处理
