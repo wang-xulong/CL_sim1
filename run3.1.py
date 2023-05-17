@@ -26,7 +26,7 @@ config = Namespace(
     run_times=20,
     patience=50
 )
-notes = "修改更小的test_bs,并记录了每次实验的acc和fgt（新增了single_run_avg_end_acc函数），wandb.log改成了按照epoch来记录, 第二个阶段执行新任务学习的时候，打印是从1开始计数"
+notes = "修改更小的test_bs,并记录了每次实验的acc和fgt（新增了single_run_avg_end_acc函数），wandb.log改成了按照epoch来记录, 第二个阶段执行新任务学习的时候，打印是从1开始计数,数据集是 2class_v2"
 loss_num = 7
 accuracy_list1 = []  # multiple run
 accuracy_list2 = []
