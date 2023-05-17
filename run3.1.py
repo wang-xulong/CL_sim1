@@ -11,7 +11,7 @@ import wandb
 import datetime
 from argparse import Namespace
 
-from metrics import compute_acc_fgt
+from metrics import compute_acc_fgt, single_run_avg_end_fgt, single_run_avg_end_acc
 from util import trainES, get_Cifar100, test
 
 # ------------------------------------ step 0/5 : initialise hyper-parameters ------------------------------------
@@ -20,12 +20,13 @@ config = Namespace(
     basic_task=0,  # count from 0
     experience=5,
     train_bs=128,
-    test_bs=128,
+    test_bs=16,
     lr_init=0.001,
     max_epoch=2000,
-    run_times=10,
+    run_times=20,
     patience=50
 )
+notes = "修改更小的test_bs,并记录了每次实验的acc和fgt（新增了single_run_avg_end_acc函数），wandb.log改成了按照epoch来记录, 第二个阶段执行新任务学习的时候，打印是从1开始计数"
 loss_num = 7
 accuracy_list1 = []  # multiple run
 accuracy_list2 = []
@@ -41,7 +42,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 now_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 for run in range(config.run_times):
     wandb.init(project=config.project_name, config=config.__dict__, name=now_time + "run:" + str(run + 1),
-               save_code=True)
+               save_code=True, notes=notes)
     print("run time: {}".format(run + 1))
 
     # ------------------------------------ step 1/5 : load data------------------------------------
@@ -86,7 +87,7 @@ for run in range(config.run_times):
     # setting stage 2 matrix
     acc_array2 = np.zeros((4, 2))
     for j, (train_data, test_data) in enumerate(zip(train_stream, test_stream)):
-        print("task {} starting...".format(j))
+        print("task {} starting...".format(j+1))
         # load old task's model
         trained_model = resnet50()
         trained_model.fc = nn.Linear(trained_model.fc.in_features, 2)  # final output dim = 2
@@ -101,8 +102,6 @@ for run in range(config.run_times):
         # record func_sim of current new task
         for index in range(1, 1 + loss_num):
             fun_score[j, index] = new_task_loss[index - 1]
-        # print("for task {}, the new_task_first_loss is {:.4}.".format(j, new_task_first_loss))
-        # fun_score[run, j] = (1 - (new_task_first_loss / basic_loss.item()))
 
         # test model on basic task and task j
         with torch.no_grad():
@@ -114,6 +113,16 @@ for run in range(config.run_times):
     accuracy_list3.append([acc_array1[2, :], acc_array2[2, :]])
     accuracy_list4.append([acc_array1[3, :], acc_array2[3, :]])
     fun_score_list.append(fun_score)
+    # 打印每次的end_acc和fgt  # 针对4个任务
+    print("task 1 end acc is {}".format(single_run_avg_end_acc(accuracy_list1[run])))
+    print("task 1 fgt is {}".format(single_run_avg_end_fgt(accuracy_list1[run])))
+    print("task 2 end acc is {}".format(single_run_avg_end_acc(accuracy_list2[run])))
+    print("task 2 fgt is {}".format(single_run_avg_end_fgt(accuracy_list2[run])))
+    print("task 3 end acc is {}".format(single_run_avg_end_acc(accuracy_list3[run])))
+    print("task 3 fgt is {}".format(single_run_avg_end_fgt(accuracy_list3[run])))
+    print("task 4 end acc is {}".format(single_run_avg_end_acc(accuracy_list4[run])))
+    print("task 4 fgt is {}".format(single_run_avg_end_fgt(accuracy_list4[run])))
+
     wandb.finish()
 accuracy_array1 = np.array(accuracy_list1)
 accuracy_array2 = np.array(accuracy_list2)

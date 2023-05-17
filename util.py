@@ -65,17 +65,20 @@ def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, devic
                 # record valid loss
                 valid_losses.append(test_loss.item())
                 valid_accs.append(accuracy(y_pred, y_test).item())
-                wandb.log({"Train id:" + str(task_id): accuracy(y_pred, y_test).item()})
+                # 不再记录每batch的训练情况
+                # wandb.log({"Train id:" + str(task_id): accuracy(y_pred, y_test).item()})
 
             # calculate average loss over an epoch
             train_loss = np.average(train_losses)
             valid_loss = np.average(valid_losses)
             train_acc = np.average(train_accs)
             valid_acc = np.average(valid_accs)
+            # 记录每个epoch的训练下任务的情况
+            wandb.log({"Train id:" + str(task_id): valid_acc, "epoch": e})
             avg_train_losses.append(train_loss)
             avg_valid_losses.append(valid_loss)
             avg_train_accs.append(train_acc)
-            avg_valid_accs.append((valid_acc))
+            avg_valid_accs.append(valid_acc)
             epoch_len = len(str(max_epoch))
             print_msg = (f'[{e:>{epoch_len}}/{max_epoch:>{epoch_len}}] ' +
                          f' train_loss: {train_loss:.5f}' +
