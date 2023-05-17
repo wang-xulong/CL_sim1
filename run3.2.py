@@ -24,7 +24,8 @@ config = Namespace(
     lr_init=0.001,
     max_epoch=2000,
     run_times=20,
-    patience=50
+    patience=50,
+    class_num=5
 )
 notes = "数据集是 5class_v1，分类改成了5分类"
 loss_num = 7
@@ -46,10 +47,10 @@ for run in range(config.run_times):
     print("run time: {}".format(run + 1))
 
     # ------------------------------------ step 1/5 : load data------------------------------------
-    train_stream, test_stream = get_Cifar100()
+    train_stream, test_stream = get_Cifar100(train_bs=config.train_bs, test_bs=config.test_bs)
     # ------------------------------------ step 2/5 : define network-------------------------------
     model = resnet50()
-    model.fc = nn.Linear(model.fc.in_features, 5)
+    model.fc = nn.Linear(model.fc.in_features, config.class_num)
     # ------------------------------------ step 3/5 : define loss function and optimization ------------------------
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=config.lr_init)
@@ -90,7 +91,7 @@ for run in range(config.run_times):
         print("task {} starting...".format(j+1))
         # load old task's model
         trained_model = resnet50()
-        trained_model.fc = nn.Linear(trained_model.fc.in_features, 2)  # final output dim = 2
+        trained_model.fc = nn.Linear(trained_model.fc.in_features, config.class_num)  # final output dim = 2
         trained_model.load_state_dict(torch.load(trained_model_path))
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(trained_model.parameters(), lr=config.lr_init, momentum=0.9, dampening=0.1)
