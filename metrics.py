@@ -111,8 +111,8 @@ def single_run_avg_end_fgt(acc_array):
     best_acc = np.max(acc_array, axis=1)
     end_acc = acc_array[-1]
     final_forgets = best_acc - end_acc
-    avg_fgt = np.mean(final_forgets)
-    return avg_fgt
+    # avg_fgt = np.mean(final_forgets)
+    return final_forgets
 
 
 def single_run_avg_end_acc(acc_array):

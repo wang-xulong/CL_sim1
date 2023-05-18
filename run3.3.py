@@ -17,17 +17,17 @@ from util import trainES, get_Cifar100, test
 # ------------------------------------ step 0/5 : initialise hyper-parameters ------------------------------------
 config = Namespace(
     project_name='CIFAR100',
-    basic_task=0,  # count from 0
+    basic_task=1,  # count from 0
     experience=5,
     train_bs=128,
-    test_bs=16,
+    test_bs=200,
     lr_init=0.001,
     max_epoch=2000,
-    run_times=20,
+    run_times=10,
     patience=50,
     class_num=2
 )
-notes = "使用了粗标签，数据集是 Cifar100_2class_v3，修改了测试模型只log记录2次的bug"
+notes = "数据集是 Cifar100_2class_v3，测试模型只log记录1次, basic task = 1"
 loss_num = 7
 accuracy_list1 = []  # multiple run
 accuracy_list2 = []
