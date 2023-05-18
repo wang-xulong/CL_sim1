@@ -16,6 +16,8 @@ def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, devic
             func_sim=False):
     # 要记录训练的epoch
     record_epoch = 0
+    # 新任务第一次梯度下降后的损失
+    new_task_loss = -1
     # to track the training loss as the model trains
     train_losses = []
     # to track the validation loss as the model trains
@@ -28,9 +30,6 @@ def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, devic
     valid_accs = []
     avg_train_accs = []
     avg_valid_accs = []
-
-    # 准备func_sim ,用来记录新任务的loss
-    new_task_loss = []
 
     # initialize the early_stopping object
     early_stopping = EarlyStopping(patience=patience, verbose=True)
@@ -52,7 +51,7 @@ def trainES(train_data, test_data, model, criterion, optimizer, max_epoch, devic
             train_accs.append(accuracy(y_pred, y_train).item())
 
         if func_sim is True and e == record_epoch:
-            new_task_loss = copy.deepcopy(train_losses[0:7])  # 1000个样本，batch_size 是 128，最多7次!
+            new_task_loss = copy.deepcopy(train_losses[1])  # 第1次为模型梯度下降并更新一次后的损失
 
         # validation
         model.eval()
@@ -174,12 +173,12 @@ def test(test_data, model, criterion, device, task_id):
         loss = criterion(test_pred, y_test)
         test_data_loss += loss * test_data.batch_size
         current_acc = accuracy(test_pred, y_test)
-        wandb.log({"Test id:" + str(task_id): current_acc})
         test_data_acc += current_acc
 
     test_loss = test_data_loss / len(test_data.dataset)
     acc = test_data_acc / (t_j + 1)
     print("-----------test loss {:.4}, acc {:.4} ".format(test_loss, acc))
+    wandb.log({"Test id:" + str(task_id): acc})
     return test_loss.cpu(), acc.cpu()
 
 
@@ -219,8 +218,8 @@ def get_Cifar10(train_bs=128, test_bs=64):
 
 def get_Cifar100(train_bs=128, test_bs=64):
     base_dir = "/home/acq21xw"
-    train_dir = os.path.join(base_dir, "Data", "SplitCifar100_2class_v3", "train")
-    test_dir = os.path.join(base_dir, "Data", "SplitCifar100_2class_v3", "test")
+    train_dir = os.path.join(base_dir, "Data", "SplitCifar100_2class", "train")
+    test_dir = os.path.join(base_dir, "Data", "SplitCifar100_2class", "test")
     train_stream = []
     test_stream = []
     # MNIST 数据集处理

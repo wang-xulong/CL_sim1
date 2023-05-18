@@ -6,6 +6,7 @@ import os
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+import pandas as pd
 from torchvision.models.resnet import resnet50
 import wandb
 import datetime
@@ -27,13 +28,15 @@ config = Namespace(
     patience=50,
     class_num=2
 )
-notes = "数据集是 Cifar100_2class_v3，测试模型只log记录1次, basic task = 1"
-loss_num = 7
+notes = "!!"
+
 accuracy_list1 = []  # multiple run
 accuracy_list2 = []
 accuracy_list3 = []
 accuracy_list4 = []
 fun_score_list = []
+acc_list = []
+fgt_list = []
 # use GPU?
 no_cuda = False
 use_cuda = not no_cuda and torch.cuda.is_available()
@@ -64,19 +67,21 @@ for run in range(config.run_times):
                                                   config.max_epoch, device, patience=config.patience,
                                                   task_id=0, func_sim=False)
     # 记录本次每个任务的fun_score
-    fun_score = np.zeros((4, (loss_num + 1)))  # 4个任务，7个task loss 和一个 basic loss
+    fun_score = np.zeros((4, 1))  # 4个任务，7个task loss 和一个 basic loss
     # 记录basic loss  4个任务
-    fun_score[:, 0] = avg_train_losses[-1]
+    fun_score[:, 0] = avg_train_losses[-(config.patience+1)]  # 最佳模型的epoch时候的 train_loss
     # print("basic loss:{:.4}".format(basic_loss))
 
     # setting stage 1 matrix
     acc_array1 = np.zeros((4, 2))
     # testing basic task
+    print("test basic task")
     _, acc_array1[:, 0] = test(test_stream[config.basic_task], model, criterion, device, task_id=0)
     # pop the src data from train_stream and test_stream
     train_stream.pop(config.basic_task)
     test_stream.pop(config.basic_task)
     # test other tasks except basic task
+    print("test other tasks")
     for i, probe_data in enumerate(test_stream):
         with torch.no_grad():
             _, acc_array1[i, 1] = test(probe_data, model, criterion, device, task_id= i+1)
@@ -101,29 +106,48 @@ for run in range(config.run_times):
                                                            device, config.patience,
                                                            task_id=j + 1, func_sim=True)
         # record func_sim of current new task
-        for index in range(1, 1 + loss_num):
-            fun_score[j, index] = new_task_loss[index - 1]
+        fun_score[j, 0] = 1 - new_task_loss / fun_score[j, 0]
 
         # test model on basic task and task j
         with torch.no_grad():
+            print("test basic task")
             _, acc_array2[j, 0] = test(basic_task_test_data, trained_model, criterion, device, task_id=0)
-            _, acc_array2[j, 1] = test(test_stream[j], trained_model, criterion, device, task_id=j+1)
+            print("test new task")
+            _, acc_array2[j, 1] = test(test_stream[j], trained_model, criterion, device, task_id=j + 1)
         # computing avg_acc and CF
     accuracy_list1.append([acc_array1[0, :], acc_array2[0, :]])
     accuracy_list2.append([acc_array1[1, :], acc_array2[1, :]])
     accuracy_list3.append([acc_array1[2, :], acc_array2[2, :]])
     accuracy_list4.append([acc_array1[3, :], acc_array2[3, :]])
-    fun_score_list.append(fun_score)
-    # 打印每次的end_acc和fgt  # 针对4个任务
-    print("task 1 end acc is {}".format(single_run_avg_end_acc(accuracy_list1[run])))
-    print("task 1 fgt is {}".format(single_run_avg_end_fgt(accuracy_list1[run])))
-    print("task 2 end acc is {}".format(single_run_avg_end_acc(accuracy_list2[run])))
-    print("task 2 fgt is {}".format(single_run_avg_end_fgt(accuracy_list2[run])))
-    print("task 3 end acc is {}".format(single_run_avg_end_acc(accuracy_list3[run])))
-    print("task 3 fgt is {}".format(single_run_avg_end_fgt(accuracy_list3[run])))
-    print("task 4 end acc is {}".format(single_run_avg_end_acc(accuracy_list4[run])))
-    print("task 4 fgt is {}".format(single_run_avg_end_fgt(accuracy_list4[run])))
+    print("run time {}'s func_score is :".format(run + 1))
+    print(fun_score)
+    fun_score_list.append(fun_score.flatten().tolist())
 
+    acc_1 = single_run_avg_end_acc(accuracy_list1[run])
+    fgt_1 = single_run_avg_end_fgt(accuracy_list1[run])
+    acc_2 = single_run_avg_end_acc(accuracy_list2[run])
+    fgt_2 = single_run_avg_end_fgt(accuracy_list2[run])
+    acc_3 = single_run_avg_end_acc(accuracy_list3[run])
+    fgt_3 = single_run_avg_end_fgt(accuracy_list3[run])
+    acc_4 = single_run_avg_end_acc(accuracy_list4[run])
+    fgt_4 = single_run_avg_end_fgt(accuracy_list4[run])
+    acc_list.append(acc_1)
+    acc_list.append(acc_2)
+    acc_list.append(acc_3)
+    acc_list.append(acc_4)
+    fgt_list.append(fgt_1)
+    fgt_list.append(fgt_2)
+    fgt_list.append(fgt_3)
+    fgt_list.append(fgt_4)
+    # 打印每次的end_acc和fgt  # 针对4个任务
+    print("task 1 end acc is {}".format(acc_1))
+    print("task 1 fgt is {}".format(fgt_1))
+    print("task 2 end acc is {}".format(acc_2))
+    print("task 2 fgt is {}".format(fgt_2))
+    print("task 3 end acc is {}".format(acc_3))
+    print("task 3 fgt is {}".format(fgt_3))
+    print("task 4 end acc is {}".format(acc_4))
+    print("task 4 fgt is {}".format(fgt_4))
     wandb.finish()
 accuracy_array1 = np.array(accuracy_list1)
 accuracy_array2 = np.array(accuracy_list2)
@@ -140,5 +164,9 @@ avg_end_acc, avg_end_fgt, avg_acc = compute_acc_fgt(accuracy_array4)
 print('----------- Avg_End_Acc {} Avg_End_Fgt {} Avg_Acc {}-----------'.format(avg_end_acc, avg_end_fgt, avg_acc))
 
 # save func_sim and metrics
-for t in range(config.run_times):
-    np.savetxt("func_score of time " + str(t) + ".csv", fun_score_list[t], delimiter=',')
+result = {
+    'func_score': fun_score_list,
+    'acc': acc_list,
+    'fgt': fgt_list
+}
+pd.DataFrame(result).to_csv('func_score_acc_fgt.csv')
