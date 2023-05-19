@@ -23,8 +23,8 @@ config = Namespace(
     train_bs=128,
     test_bs=128,
     lr_init=0.001,
-    max_epoch=2000,
-    run_times=20,
+    max_epoch=1,
+    run_times=2,
     patience=50,
     class_num=2
 )
@@ -120,7 +120,7 @@ for run in range(config.run_times):
     accuracy_list4.append([acc_array1[3, :], acc_array2[3, :]])
     print("run time {}'s func_score is :".format(run+1))
     print(fun_score)
-    fun_score_list.append(fun_score.flatten().tolist())
+    fun_score_list.extend(fun_score.flatten().tolist())
 
     acc_1 = single_run_avg_end_acc(accuracy_list1[run])
     fgt_1 = single_run_avg_end_fgt(accuracy_list1[run])
@@ -130,14 +130,14 @@ for run in range(config.run_times):
     fgt_3 = single_run_avg_end_fgt(accuracy_list3[run])
     acc_4 = single_run_avg_end_acc(accuracy_list4[run])
     fgt_4 = single_run_avg_end_fgt(accuracy_list4[run])
-    acc_list.append(acc_1)
-    acc_list.append(acc_2)
-    acc_list.append(acc_3)
-    acc_list.append(acc_4)
-    fgt_list.append(fgt_1)
-    fgt_list.append(fgt_2)
-    fgt_list.append(fgt_3)
-    fgt_list.append(fgt_4)
+    acc_list.extend(acc_1)
+    acc_list.extend(acc_2)
+    acc_list.extend(acc_3)
+    acc_list.extend(acc_4)
+    fgt_list.extend(fgt_1)
+    fgt_list.extend(fgt_2)
+    fgt_list.extend(fgt_3)
+    fgt_list.extend(fgt_4)
     # 打印每次的end_acc和fgt  # 针对4个任务
     print("task 1 end acc is {}".format(acc_1))
     print("task 1 fgt is {}".format(fgt_1))
