@@ -23,9 +23,9 @@ config = Namespace(
     train_bs=128,
     test_bs=128,
     lr_init=0.001,
-    max_epoch=100,
-    run_times=2,
-    patience=2,
+    max_epoch=2000,
+    run_times=20,
+    patience=50,
     class_num=2
 )
 notes = "实验重置并整理自动数据，数据集是Split100_2class"
