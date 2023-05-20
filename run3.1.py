@@ -28,7 +28,7 @@ config = Namespace(
     patience=50,
     class_num=2
 )
-notes = "数据集是Split100_2class_v2"
+notes = "数据集是Split100_2class_v3"
 
 accuracy_list1 = []  # multiple run
 accuracy_list2 = []
@@ -168,4 +168,4 @@ result = {
     'acc': acc_list,
     'fgt': fgt_list
 }
-pd.DataFrame(result).to_csv('func_score_acc_fgt_v2.csv')
+pd.DataFrame(result).to_csv('func_score_acc_fgt_v3.csv')
