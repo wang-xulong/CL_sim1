@@ -36,8 +36,6 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 now_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-wandb.init(project=config.project_name, config=config.__dict__, name=now_time,
-           save_code=True, notes=notes)
 
 # ------------------------------------ step 1/5 : load data------------------------------------
 train_stream, test_stream = get_Cifar100(train_bs=config.train_bs, test_bs=config.test_bs)
